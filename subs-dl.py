@@ -43,8 +43,12 @@ download_dir.mkdir(parents=True, exist_ok=True)
 
 mpv = MPV(start_mpv=False, ipc_socket=SOCKET)
 
-with open(Path(directory) / "db.json") as f:
-    db = json.load(f)
+db_path = Path(directory) / "db.json"
+if db_path.is_file():
+    with open(db_path) as f:
+        db = json.load(f)
+else:
+    db = {}
 
 
 provider = "jimaku"
@@ -66,7 +70,7 @@ css_selector = {
 }
 
 
-def get_list(url):
+def get_list(url: str) -> dict:
     global provider
     try:
         mpv.show_text(f"Fetching data from: {url}")
@@ -97,17 +101,17 @@ def get_list(url):
     return result_list
 
 
-def get_episode(s):
+def get_episode(filename: str) -> str | None:
     try:
-        result = aniparse.parse(s)["episode_number"]
+        result = aniparse.parse(filename)["episode_number"]
     except KeyError:
         result = None
     return result
 
 
-def get_title(s):
+def get_title(filename: str) -> str | None:
     try:
-        temp_result = aniparse.parse(s)
+        temp_result = aniparse.parse(filename)
         result = temp_result["anime_title"]
         try:
             season = temp_result["anime_season"]
@@ -120,7 +124,7 @@ def get_title(s):
     return result
 
 
-def get_list_selection(header, list_data, comment=""):
+def get_list_selection(header: str, list_data: list, comment: str = "") -> int:
     temp_list = ScrollList(mpv, header, list_data, comment=comment)
     selection = temp_list.get_selection()
     if selection is None:
@@ -129,7 +133,7 @@ def get_list_selection(header, list_data, comment=""):
     return selection
 
 
-def get_mp_input(prompt="Type: "):
+def get_mp_input(prompt: str = "Type: ") -> str:
     while True:
         temp_result = mpv.get_input(prompt)
         if temp_result:
@@ -139,7 +143,7 @@ def get_mp_input(prompt="Type: "):
             sys.exit()
 
 
-def is_valid_url(url):
+def is_valid_url(url: str) -> bool:
     try:
         result = urlparse(url)
         return all([result.scheme, result.netloc])
@@ -147,7 +151,7 @@ def is_valid_url(url):
         return False
 
 
-def anilist_search(title):
+def anilist_search(title: str) -> list:
     variables = {"page": 1, "perPage": 5, "search": title}
 
     url = "https://graphql.anilist.co"
@@ -199,7 +203,7 @@ def anilist_search(title):
     return titles_list
 
 
-def handlezip(zip_path, dir_path, filename_no_ext, *, seven_zip=False):
+def handlezip(zip_path: str, dir_path: str, filename_no_ext: str, *, seven_zip: bool = False) -> None:
     file_handler = py7zr.SevenZipFile if seven_zip else zipfile.ZipFile
 
     with file_handler(zip_path, "r") as zfile:
@@ -245,14 +249,14 @@ def handlezip(zip_path, dir_path, filename_no_ext, *, seven_zip=False):
         mpv.show_text("Finished Extracting")
 
         if len(selected) == 1:
-            mpv.command("sub-add", Path(final_path) / selected[0])
+            mpv.command("sub-add", str(Path(final_path, selected[0])))
             return
 
         # filelist = os.listdir(final_path)
         filelist = [x for x in selected if Path(final_path, x).is_file()]
         file_id = get_list_selection("Select file to load as sub", filelist)
         selected = filelist[file_id]
-        mpv.command("sub-add", Path(final_path, selected))
+        mpv.command("sub-add", str(Path(final_path, selected)))
 
 
 def main() -> None:
@@ -428,7 +432,7 @@ def main() -> None:
 
     best_file = quote(unquote(linkDictionary[finalList[selected]].encode("utf-8")))
     full_filename = Path(finalList[selected])
-    base_filename, ext = full_filename.stem, full_filename.suffix
+    base_filename, ext = full_filename.stem, full_filename.suffix.strip(". ")
     print(f"base: {base_filename}, ext: {ext}")
 
     if download_in_folder:
@@ -461,8 +465,7 @@ def main() -> None:
             sys.exit()
             # raise SystemExit(e)
 
-
-    if full_path.suffix in compressed:
+    if full_path.suffix.strip(". ") in compressed:
         mpv.show_text("Downloaded file is a compressed file", 1000)
 
         if zipfile.is_zipfile(full_path):
