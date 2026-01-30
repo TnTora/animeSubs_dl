@@ -1,20 +1,31 @@
 local utils = require('mp.utils')
 local script_path = utils.join_path(mp.get_script_directory(), "subs-dl.py")
-local custom_python_cmd = ""
+local new_ipc_server = "/tmp/mpvsocket"
+local custom_python_cmd
 local running = false
 local script_run
 
 if package.config:sub(1,1) == '/' then
     python_cmd = "python3"
-    new_ipc_server = "/tmp/mpvsocket"
-else
+    bin_path = utils.join_path(mp.get_script_directory(), "bin/subs-dl.bin")
+    default_venv_bin = mp.command_native({"expand-path", "~~/.mpv_venv/bin/python"})
+  else
     python_cmd = "py"
-    new_ipc_server = "\\\\.\\pipe\\tmp\\mpvsocket"
-end
-
-if custom_python_cmd then
+    bin_path = utils.join_path(mp.get_script_directory(), "bin/subs-dl.exe")
+    default_venv_bin = mp.command_native({"expand-path", "~~/.mpv_venv/Scripts/python.exe"})
+  end
+  
+  if utils.file_info(bin_path) == nil then
+    bin_path = nil
+  end
+  
+  if utils.file_info(default_venv_bin) ~= nil then
+    python_cmd = default_venv_bin
+  end
+  
+  if custom_python_cmd then
     python_cmd = custom_python_cmd
-end
+  end
 
 function down_subs()
     if running then
@@ -31,11 +42,20 @@ function down_subs()
         new_ipc_server = old_ipc_server
     end
 
-    local arguments = {
+    local arguments
+
+    if bin_path then
+      arguments = {
+        bin_path,
+      }
+    else
+      arguments = {
         python_cmd,
         script_path,
-        new_ipc_server,
-    }
+      }
+    end
+
+    table.insert(arguments, new_ipc_server)
 
     script_run = mp.command_native_async({
         name = "subprocess",
@@ -51,5 +71,5 @@ function down_subs()
 
 end;
 
-mp.add_key_binding("Ctrl+K", "auto_download_subs", down_subs, {repeatable=true})
+mp.add_key_binding("Ctrl+J", "auto_download_subs", down_subs, {repeatable=false})
 
