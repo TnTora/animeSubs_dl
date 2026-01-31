@@ -1,6 +1,6 @@
 # animeSubs_dl
 
-mpv script to download japanese subtitles for anime. Both filename and title are parsed to obtain anime title and episode, this information is used to find subtitles on [jimaku](https://jimaku.cc/) and [kitsunekko](https://kitsunekko.net/dirlist.php?dir=subtitles%2Fjapanese%2F) as a fallback. If the file chosen is compressed, the script will try to extract its contents. Once the subtitle file is downloaded, it will be automatically loaded on mpv for the current file to use.
+mpv script to download japanese subtitles for anime. Both filename and title are parsed to obtain anime title and episode, this information is used to find subtitles on [jimaku](https://jimaku.cc/) (or [kitsunekko](https://kitsunekko.net/dirlist.php?dir=subtitles%2Fjapanese%2F) as a fallback). If the file chosen is compressed, the script will try to extract its contents. Once the subtitle file is downloaded, it will be automatically loaded on mpv for the current file to use.
 
 ### Demo
 
@@ -63,7 +63,7 @@ Ctrl+J             script-binding animeSubs_dl/auto_download_subs
 
 | Name | LICENSE |
 |------|---------|
-| [aniparse]([https://github.com/python-websockets/websockets](https://github.com/MeGaNeKoS/aniparse)) | Mozilla Public License 2.0 (MPL 2.0) |
+| [aniparse](https://github.com/MeGaNeKoS/aniparse) | Mozilla Public License 2.0 (MPL 2.0) |
 | [beautifulsoup4](https://www.crummy.com/software/BeautifulSoup/bs4/) | MIT License |
 | [py7zr](https://github.com/miurahr/py7zr) | LGPL-2.1-or-later |
 | [python-mpv-jsonipc](https://github.com/TnTora/python-mpv-jsonipc) (TnTora) <br> forked from [python-mpv-jsonipc](https://github.com/iwalton3/python-mpv-jsonipc) (iwalton3) | Apache-2.0|
