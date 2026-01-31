@@ -457,7 +457,9 @@ def main() -> None:
             if not url3.startswith(("http:", "https:")):
                 raise ValueError("URL must start with 'http:' or 'https:'")
 
-            urlretrieve(url3, full_path)
+            file_response = requests.get(url3, timeout=30)
+            with open(full_path, mode="wb") as f:
+                f.write(file_response.content)
         except Exception as e:
             print(e, flush=True)
             mpv.show_text("Something went wrong. Check console for details.")
