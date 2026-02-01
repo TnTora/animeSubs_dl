@@ -50,14 +50,14 @@ On mpv, use the keybinding `CTRL+SHIFT+j` to start the script and then follow th
 
 If you are playing a local file, the subtitles file will be placed in a folder named after the parsed anime title and placed in the same directory as your local file. If you are streaming a file, the subtitles will be downloaded into the `mpv_subs` folder automatically created in your `HOME` directory.
 
-To change the keybinding add the following line to you `input.conf` file after replacing `CTRL+J` with whatever you prefer
+To change the keybinding add the following line to your `input.conf` file after replacing `CTRL+J` with whatever you prefer
 
 ```
 # animeSubs_dl
 Ctrl+J             script-binding animeSubs_dl/auto_download_subs
 ```
 
-> **NOTE: If you are not using the [standard mpv build](https://mpv.io/installation/), your player might ignore the `input.conf` file (e.g. [mpv.net](https://github.com/mpvnet-player/mpv.net), [IINA](https://iina.io/)) so you might need to use the in-app options to change the keybindings.**
+> **NOTE: If you are not using the [standard mpv build](https://mpv.io/installation/), your player might ignore the `input.conf` file (e.g. [mpv.net](https://github.com/mpvnet-player/mpv.net), [IINA](https://iina.io/)) so you might need to use the in-app options to set the keybindings.**
 
 ## Dependencies
 
