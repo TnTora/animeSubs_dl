@@ -106,7 +106,7 @@ def get_episode(filename: str) -> str | None:
         result = aniparse.parse(filename)["episode_number"]
     except KeyError:
         result = None
-    return result
+    return str(result)
 
 
 def get_title(filename: str) -> str | None:
