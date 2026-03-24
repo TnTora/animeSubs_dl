@@ -10,7 +10,7 @@ https://github.com/user-attachments/assets/424f4235-b425-48fa-9c29-9186c8a79cf6
 
 Locate your mpv config folder. It is typically found at `~/.config/mpv/` on Linux/MacOS and `C:\users\USERNAME\AppData\Roaming\mpv\` on Windows.  [Files section](https://mpv.io/manual/master/#files) in mpv's manual for more info. I will refer to the path of this folder as `<mpv config directory>` for the rest of this file.
 
-To install the mpv script you can either use the precompiled binaries without having to install anything else. Otherwise you can setup a python environent to run the script. Binaries have not been thoroughly tested, open an Issue if you encounter any problem.
+To install the mpv script you can use the precompiled binaries without having to install anything else. Otherwise you can setup a python environent to run the script. Binaries have not been thoroughly tested, open an Issue if you encounter any problem.
 
 ### Setup mpv script using compiled binaries
 
