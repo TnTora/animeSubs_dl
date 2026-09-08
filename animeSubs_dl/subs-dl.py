@@ -1,13 +1,14 @@
-import sys
+import difflib
+import json
 import os
 import platform
-from pathlib import Path
-import json
-import difflib
-from urllib.request import urlretrieve
-from urllib.parse import quote, unquote, urlparse
-from subprocess import Popen
+import sys
 import zipfile
+from pathlib import Path
+from subprocess import Popen
+from urllib.parse import quote, unquote, urlparse
+
+# from urllib.request import urlretrieve
 import aniparse
 import requests
 from bs4 import BeautifulSoup
@@ -26,7 +27,7 @@ if platform.system() == "Darwin":       # macOS
         Popen(["open", filepath])
 elif platform.system() == "Windows":    # Windows
     def open_file(filepath: str) -> None:
-        os.startfile(filepath)
+        os.startfile(filepath)  # ty:ignore[unresolved-attribute]
 else:                                   # linux variants
     def open_file(filepath: str) -> None:
         Popen(["xdg-open", filepath])
@@ -71,7 +72,7 @@ css_selector = {
 
 
 def get_list(url: str) -> dict:
-    global provider
+    global provider  # noqa: PLW0603
     try:
         mpv.show_text(f"Fetching data from: {url}")
         response = requests.get(url, timeout=10)
@@ -151,7 +152,7 @@ def is_valid_url(url: str) -> bool:
         return False
 
 
-def anilist_search(title: str) -> list:
+def anilist_search(title: str) -> tuple[list, str]:
     variables = {"page": 1, "perPage": 5, "search": title}
 
     url = "https://graphql.anilist.co"
@@ -176,21 +177,37 @@ def anilist_search(title: str) -> list:
         }
     """
 
-    # mpv.show_text(f"Anilist search for {title}", 1000)
     try:
-        response = requests.post(url, json={"query": query, "variables": variables}, timeout=5)
+        response: requests.Response = requests.post(url, json={"query": query, "variables": variables}, timeout=5)
     except requests.exceptions.Timeout:
-        msg = "Anilist: request timed out"
+        msg = "Request timed out"
+        mpv.show_text(msg, 2000)
         print(msg, flush=True)
-        mpv.show_text(msg, 1000)
-        sys.exit()
+        return [], msg
 
     response_json = response.json()
-    response_data = response_json["data"]["Page"]["media"]
+
+    if not response.ok:
+        try:
+            msg = response_json["errors"][0]["message"]
+        except (KeyError, IndexError):
+            msg = f"Search failed. status_code {response.status_code}"
+        mpv.show_text(msg, 2000)
+        print(msg, flush=True)
+        return [], msg
+
+    try:
+        response_data = response_json["data"]["Page"]["media"]
+    except KeyError:
+        msg = "Search failed"
+        mpv.show_text(msg, 2000)
+        print(msg, flush=True)
+        return [], msg
 
     if not response_data:
-        mpv.show_text(f"Anilist: no matches for {title}", 1000)
-        return []
+        msg = f"no matches for {title}"
+        mpv.show_text(f"Anilist: {msg}", 2000)
+        return [], msg
 
     # mpv.show_text("", 1000)
     titles_list = [response_data[i]["title"]["romaji"] for i in range(len(response_data))]
@@ -200,7 +217,7 @@ def anilist_search(title: str) -> list:
         with open(Path(directory) / "db.json", "w") as f:
             json.dump(db, f, indent=2)
 
-    return titles_list
+    return titles_list, ""
 
 
 def handlezip(zip_path: str, dir_path: str, filename_no_ext: str, *, seven_zip: bool = False) -> None:
@@ -240,7 +257,7 @@ def handlezip(zip_path: str, dir_path: str, filename_no_ext: str, *, seven_zip: 
 
         mpv.show_text("Extracting...", 60000)
 
-        if seven_zip:
+        if isinstance(zfile, py7zr.SevenZipFile):
             zfile.reset()
             zfile.extract(path=final_path, targets=selected)
         else:
@@ -326,12 +343,14 @@ def main() -> None:
     old_parsedTitle = parsedTitle
     anilist_results = None
 
+
     if parsedTitle in db:
         parsedTitle = db[parsedTitle]
     else:
-        anilist_results = anilist_search(old_parsedTitle)
+        anilist_results, anilist_msg = anilist_search(old_parsedTitle)
         if anilist_results:
             parsedTitle = anilist_results[0]
+
 
     mpv.show_text("", 1000)
     anime = parsedTitle
@@ -345,15 +364,15 @@ def main() -> None:
         if confirmation in {"Change Title", "Change both"}:
             if old_parsedTitle:
                 if not anilist_results:
-                    anilist_results = anilist_search(old_parsedTitle)
+                    anilist_results, anilist_msg = anilist_search(old_parsedTitle)
                 anilist_results.append(old_parsedTitle)
                 anilist_results.append("Other")
-                anime = anilist_results[get_list_selection(f"Anilist results for {old_parsedTitle}: ", anilist_results)]
+                anime = anilist_results[get_list_selection(f"Anilist results for {old_parsedTitle}: ", list_data=anilist_results, comment=anilist_msg)]
                 if anime == "Other":
                     anime = get_mp_input("Type correct Title: ")
             else:
                 anime = get_mp_input("Type correct Title: ")
-            anilist_results = anilist_search(anime)
+            anilist_results, anilist_msg = anilist_search(anime)
         if confirmation in {"Change episode", "Change both"}:
             anime_ep = get_mp_input("Type episode number: ")
 
@@ -392,7 +411,7 @@ def main() -> None:
 
     compressed = ("zip", "7z", "rar")
 
-
+    print(f"{anime_ep = }, {anime = }", flush=True)
     if anime_ep is not None:
         files = [(s) for s in ep_list if anime_ep == get_episode(s)]
         compressedFiles = [(s) for s in ep_list if s.endswith(compressed)]
@@ -455,8 +474,9 @@ def main() -> None:
 
         try:
             if not url3.startswith(("http:", "https:")):
-                raise ValueError("URL must start with 'http:' or 'https:'")
+                raise ValueError("URL must start with 'http:' or 'https:'")  # noqa: TRY301
 
+            # urlretrieve(url3, full_path)
             file_response = requests.get(url3, timeout=30)
             with open(full_path, mode="wb") as f:
                 f.write(file_response.content)
