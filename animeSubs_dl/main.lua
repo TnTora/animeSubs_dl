@@ -1,33 +1,36 @@
 local utils = require('mp.utils')
 local script_path = utils.join_path(mp.get_script_directory(), "subs-dl.py")
 local new_ipc_server = "/tmp/mpvsocket"
+local python_cmd
 local custom_python_cmd
+local default_venv_bin
+local bin_path
 local running = false
 local script_run
 
 if package.config:sub(1,1) == '/' then
-    python_cmd = "python3"
-    bin_path = utils.join_path(mp.get_script_directory(), "bin/subs-dl.bin")
-    default_venv_bin = mp.command_native({"expand-path", "~~/.mpv_venv/bin/python"})
-  else
-    python_cmd = "py"
-    bin_path = utils.join_path(mp.get_script_directory(), "bin/subs-dl.exe")
-    default_venv_bin = mp.command_native({"expand-path", "~~/.mpv_venv/Scripts/python.exe"})
-  end
-  
-  if utils.file_info(bin_path) == nil then
-    bin_path = nil
-  end
-  
-  if utils.file_info(default_venv_bin) ~= nil then
-    python_cmd = default_venv_bin
-  end
-  
-  if custom_python_cmd then
-    python_cmd = custom_python_cmd
-  end
+  python_cmd = "python3"
+  bin_path = utils.join_path(mp.get_script_directory(), "bin/subs-dl.bin")
+  default_venv_bin = mp.command_native({"expand-path", "~~/.mpv_venv/bin/python"})
+else
+  python_cmd = "py"
+  bin_path = utils.join_path(mp.get_script_directory(), "bin/subs-dl.exe")
+  default_venv_bin = mp.command_native({"expand-path", "~~/.mpv_venv/Scripts/python.exe"})
+end
 
-function down_subs()
+if utils.file_info(bin_path) == nil then
+  bin_path = nil
+end
+
+if utils.file_info(default_venv_bin) ~= nil then
+  python_cmd = default_venv_bin
+end
+
+if custom_python_cmd then
+  python_cmd = custom_python_cmd
+end
+
+local function down_subs()
     if running then
         mp.abort_async_command(script_run)
     end
