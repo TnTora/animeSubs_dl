@@ -14,7 +14,7 @@ To install the mpv script you can use the precompiled binaries without having to
 
 ### Setup mpv script using compiled binaries
 
-- Download the build version matching your system from the Release page and extract its contents
+- Download the build version matching your system from the [Release page](https://github.com/TnTora/animeSubs_dl/releases) and extract its contents
   
 - Place the `animeSubs_dl` folder inside the `scripts` folder in `<mpv config directory>`. If it doesn't exist you should create it.
 
